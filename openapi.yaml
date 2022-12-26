@@ -1,0 +1,159 @@
+openapi: 3.0.0
+title: Desafio Introdução ao SOLID
+description: This is a sample server to improve rest api development skills following SOLID recommendations
+version: 1.0.0
+
+contact:
+  name: Luis Meirelles
+  email: luis.gustavo.souto.meirelles@gmail.com
+
+paths:
+  /users:
+    post:
+      tags:
+        - User
+
+      summary: Create User
+      description: Create a new user
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUser'
+
+      responses:
+        201:
+          $ref: '#/components/responses/returnUser'
+
+        400:
+          description: Bad Request
+
+          content:
+            application/json:
+              schema:
+                type: object
+
+                properties:
+                  error:
+                    type: string
+                    default: The informed email is already taken
+
+    get:
+      tags:
+        - User
+      
+      summary: List all users
+      description: This endpoint list all users registered, but only if the client user is admin
+
+      parameters:
+        - in: header
+          name: user_id
+          description: The id of the user that is making the request
+          required: true
+
+          schema:
+            $ref: '#/components/schemas/User/properties/id'
+
+  /users/{userId}:
+    get:
+      tags:
+        - User
+
+      summary: Get a user by ID
+      description: Get one single user identified with the specified ID
+
+      parameters:
+        - in: path
+          name: userId
+          description: The id of the user that will be returned
+          required: true
+
+          schema:
+            $ref: '#/components/schemas/User/properties/id'
+
+      responses:
+        200:
+          $ref: '#/components/responses/returnUser'
+
+        404:
+          $ref: '#/components/responses/userNotFound'
+
+  /users/{userId}/admin:
+    patch:
+      tags:
+        - User
+
+      summary: Turns a user into admin
+      description: Get the specified user by id, and turn the admin property to 'true'
+
+      parameters:
+        - in: path
+          name: userId
+          description: The id of the user that will be turned into admin
+          required: true
+
+          schema:
+            $ref: '#/components/schemas/User/properties/id'
+
+      responses:
+        200:
+          $ref: '#/components/responses/returnUser'
+
+        404:
+          $ref: '#/components/responses/userNotFound'
+
+components:
+  schemas:
+    User:
+      allOf:
+        - $ref: '#/components/schemas/CreateUser'
+        - type: object
+
+          properties:
+            id:
+              type: string
+              format: uuid
+
+            admin:
+              type: boolean
+              default: false
+
+            created_at:
+              type: string
+              format: date-time
+
+            updated_at:
+              type: string
+              format: date-time
+
+    CreateUser:
+      type: object
+
+      properties:
+        name:
+          type: string
+
+        email:
+          type: string
+          format: email
+
+  responses:
+    returnUser:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+
+    userNotFound:
+      description: Not Found
+
+      content:
+        application/json:
+          schema:
+            type: object
+
+            properties:
+              error:
+                type: string
+                default: The requested user was not found
